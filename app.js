@@ -1,5 +1,6 @@
 (() => {
   const fileInput = document.getElementById('cbz-file');
+  const driveButton = document.getElementById('drive-button');
   const libraryView = document.getElementById('library-view');
   const readerView = document.getElementById('reader-view');
   const pageImage = document.getElementById('comic-page');
@@ -83,6 +84,84 @@
     }
   }
 
+  function driveConfig() {
+    const config = window.PANEL_GOOGLE_CONFIG || {};
+    return config.apiKey && config.clientId && config.appId &&
+      !/WSTAW|YOUR_|TU_WSTAW/i.test(`${config.apiKey} ${config.clientId} ${config.appId}`)
+      ? config : null;
+  }
+
+  function loadPicker() {
+    return new Promise((resolve, reject) => {
+      if (!window.gapi?.load) return reject(new Error('Nie uda�o si� za�adowa� Google Picker. Sprawd� po��czenie z internetem.'));
+      window.gapi.load('picker', { callback: resolve, onerror: () => reject(new Error('Google Picker nie mo�e si� za�adowa�.')) });
+    });
+  }
+
+  async function selectDriveComic(accessToken, config) {
+    await loadPicker();
+    return new Promise((resolve, reject) => {
+      const picker = new google.picker.PickerBuilder()
+        .setAppId(config.appId)
+        .setOAuthToken(accessToken)
+        .setDeveloperKey(config.apiKey)
+        .setOrigin(window.location.origin)
+        .addView(new google.picker.DocsView())
+        .setCallback(async (data) => {
+          if (data.action === google.picker.Action.CANCEL) return resolve(null);
+          if (data.action !== google.picker.Action.PICKED) return;
+          const selected = data.docs?.[0];
+          if (!selected) return resolve(null);
+          if (!/\.(cbz|zip)$/i.test(selected.name || '')) return reject(new Error('Wybierz plik z rozszerzeniem .cbz albo .zip.'));
+          try {
+            const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(selected.id)}?alt=media`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (!response.ok) throw new Error(response.status === 403
+              ? 'Google nie pozwoli� pobra� tego pliku. Sprawd� uprawnienia do pliku i spr�buj ponownie.'
+              : `Nie uda�o si� pobra� pliku z Google Drive (b��d ${response.status}).`);
+            const blob = await response.blob();
+            resolve(new File([blob], selected.name, { type: 'application/zip' }));
+          } catch (error) { reject(error); }
+        })
+        .build();
+      picker.setVisible(true);
+    });
+  }
+
+  async function openFromDrive() {
+    clearError();
+    const config = driveConfig();
+    if (!config) {
+      showError('Najpierw skonfiguruj Google Drive w pliku drive-config.js. Instrukcja jest w README projektu.');
+      return;
+    }
+    if (!window.google?.accounts?.oauth2 || !window.gapi?.load) {
+      showError('Nie uda�o si� po��czy� z us�ugami Google. Sprawd� internet i od�wie� stron�.');
+      return;
+    }
+    driveButton.disabled = true;
+    driveButton.textContent = '��czenie z Google';
+    try {
+      const token = await new Promise((resolve, reject) => {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: config.clientId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          callback: (result) => result.error ? reject(new Error('Logowanie Google zosta�o przerwane lub odrzucone.')) : resolve(result.access_token)
+        });
+        client.requestAccessToken();
+      });
+      driveButton.textContent = 'Wybierz plik na Dysku';
+      const file = await selectDriveComic(token, config);
+      if (file) await openComic(file);
+    } catch (error) {
+      showError(error?.message || 'Nie uda�o si� pobra� pliku z Google Drive.');
+    } finally {
+      driveButton.disabled = false;
+      driveButton.textContent = 'Otw�rz CBZ z Google Drive';
+    }
+  }
+
   async function getPageUrl(index) {
     if (pageUrls[index]) return pageUrls[index];
     const blob = await pages[index].async('blob');
@@ -135,6 +214,7 @@
   }
 
   fileInput.addEventListener('change', (event) => openComic(event.target.files?.[0]));
+  driveButton.addEventListener('click', openFromDrive);
   document.getElementById('back-button').addEventListener('click', closeReader);
   document.getElementById('previous-button').addEventListener('click', previousPage);
   document.getElementById('previous-control').addEventListener('click', previousPage);
