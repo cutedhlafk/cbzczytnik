@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101116">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Panel">
+    <meta name="description" content="Prosty czytnik komiks�w CBZ na iPhone'a. Pliki zostaj� na Twoim urz�dzeniu.">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <title>Panel - czytnik CBZ</title>
+  </head>
+  <body>
+    <main id="app" class="app-shell">
+      <section id="library-view" class="library-view">
+        <header class="brand-row">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="brand-name">PANEL</span>
+          <span class="local-pill"><i></i> Tylko na tym urz�dzeniu</span>
+        </header>
+
+        <div class="hero">
+          <div class="eyebrow"><span class="eyebrow-line"></span> CZYTNIK KOMIKS�W</div>
+          <h1>Tw�j komiks.<br><em>Ca�y w telefonie.</em></h1>
+          <p class="hero-copy">Otw�rz plik CBZ i czytaj wygodnie, strona po stronie. Bez konta i bez wysy�ania pliku.</p>
+
+          <div class="book-art" aria-hidden="true">
+            <div class="art-glow"></div>
+            <div class="comic-sheet sheet-back"><div class="panel panel-a"></div><div class="panel panel-b"></div><div class="panel panel-c"></div></div>
+            <div class="comic-sheet sheet-front">
+              <div class="sheet-top"><b>ISSUE 01</b><span>READ LOCAL</span></div>
+              <div class="hero-panel"><div class="moon"></div><div class="city city-one"></div><div class="city city-two"></div><div class="hero-caption">A NEW<br>CHAPTER</div></div>
+              <div class="sheet-bottom"><span>COMICS / MANGA</span><span>01 - 24</span></div>
+            </div>
+            <div class="art-stamp">CBZ<br><b>READY</b></div>
+          </div>
+
+          <label class="primary-button" for="cbz-file">
+            <span class="button-icon" aria-hidden="true">+</span>
+            <span>Wybierz plik CBZ</span>
+            <span class="button-chevron" aria-hidden="true">?</span>
+          </label>
+          <input id="cbz-file" class="visually-hidden" type="file" accept=".cbz,.zip,application/zip,application/x-cbz">
+          <p class="support-note">Obs�ugiwane: .cbz  strony PNG, JPG, WebP i inne obrazki</p>
+          <p class="drive-note">Komiks na Dysku Google? W oknie wyboru pliku otw�rz <b>Przegl�daj  Google Drive</b>.</p>
+          <p id="load-error" class="error-message" role="alert" hidden></p>
+        </div>
+
+        <section class="how-card" aria-label="Jak zacz��">
+          <div class="how-card-heading"><span>W TRZY KROKI</span><span class="tiny-spark">?</span></div>
+          <div class="steps">
+            <div class="step"><span class="step-no">01</span><div><b>Wybierz</b><small>CBZ z aplikacji Pliki</small></div></div>
+            <div class="step"><span class="step-no">02</span><div><b>Otw�rz</b><small>strony �aduj� si� na miejscu</small></div></div>
+            <div class="step"><span class="step-no">03</span><div><b>Czytaj</b><small>przesu�, aby zmieni� stron�</small></div></div>
+          </div>
+        </section>
+
+        <footer class="privacy-footer"><span class="lock-icon" aria-hidden="true">?</span> Tw�j plik nie opuszcza iPhone'a.</footer>
+      </section>
+
+      <section id="reader-view" class="reader-view" hidden>
+        <header class="reader-topbar">
+          <button id="back-button" class="icon-button" type="button" aria-label="Wr�� do biblioteki"><</button>
+          <div class="reader-book-info"><span id="book-title">Komiks</span><small id="book-subtitle">CBZ</small></div>
+          <button id="fit-button" class="icon-button fit-button" type="button" aria-label="Dopasuj stron�" title="Dopasuj stron�">?</button>
+        </header>
+        <div class="reader-stage" id="reader-stage">
+          <button id="previous-button" class="page-hit page-hit-left" type="button" aria-label="Poprzednia strona"></button>
+          <div class="page-wrap" id="page-wrap"><img id="comic-page" alt="Strona komiksu" draggable="false"></div>
+          <button id="next-button" class="page-hit page-hit-right" type="button" aria-label="Nast�pna strona"></button>
+          <div id="reader-loading" class="reader-loading" hidden><span class="spinner"></span> Otwieram komiks</div>
+        </div>
+        <footer class="reader-controls">
+          <div class="progress-row"><span id="page-counter">1 / 1</span><span id="percent-counter">0%</span></div>
+          <input id="page-slider" class="page-slider" type="range" min="0" max="0" value="0" aria-label="Przejd� do strony">
+          <div class="control-row">
+            <button id="previous-control" class="nav-button" type="button"><span aria-hidden="true"><</span> Poprzednia</button>
+            <button id="next-control" class="nav-button nav-button-next" type="button">Nast�pna <span aria-hidden="true">></span></button>
+          </div>
+          <div class="swipe-hint"><span></span> Przesu� stron� w lewo lub w prawo</div>
+        </footer>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+    <script src="app.js" defer></script>
+    <script>
+      if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+      }
+    </script>
+  </body>
+</html>
+
