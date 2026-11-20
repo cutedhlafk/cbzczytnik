@@ -44,6 +44,7 @@
             <span class="button-chevron" aria-hidden="true">?</span>
           </label>
           <input id="cbz-file" class="visually-hidden" type="file" accept=".cbz,.zip,application/zip,application/x-cbz">
+          <button id="drive-button" class="drive-button" type="button">Otw�rz CBZ z Google Drive</button>
           <p class="support-note">Obs�ugiwane: .cbz  strony PNG, JPG, WebP i inne obrazki</p>
           <p class="drive-note">Komiks na Dysku Google? W oknie wyboru pliku otw�rz <b>Przegl�daj  Google Drive</b>.</p>
           <p id="load-error" class="error-message" role="alert" hidden></p>
@@ -86,6 +87,9 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+    <script src="https://apis.google.com/js/api.js" defer></script>
+    <script src="https://accounts.google.com/gsi/client" defer></script>
+    <script src="drive-config.js" defer></script>
     <script src="app.js" defer></script>
     <script>
       if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
